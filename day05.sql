@@ -15,3 +15,9 @@ FROM posts
 WHERE post_date BETWEEN '2021-01-01' and '2021-12-31'
 GROUP BY user_id
 HAVING COUNT(post_id) > 1 ;
+--ex07
+SELECT card_name,
+MAX(issued_amount) - MIN(issued_amount) AS difference
+FROM monthly_cards_issued
+GROUP BY card_name
+ORDER BY MAX(issued_amount) - MIN(issued_amount) DESC;
