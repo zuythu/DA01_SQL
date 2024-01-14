@@ -38,3 +38,36 @@ ORDER BY message_count desc
 LIMIT 2;
 
 --ex06
+SELECT 
+tweet_id
+FROM Tweets
+WHERE LENGTH(content) >15;
+
+--ex07
+SELECT 
+activity_date AS day,
+COUNT(DISTINCT(user_id)) AS active_users
+FROM Activity
+WHERE activity_date BETWEEN '2019-06-28' AND '2019-07-27'
+GROUP BY activity_date;
+
+--ex08
+SELECT
+COUNT(*) AS number_of_employee
+FROM employees
+WHERE 
+EXTRACT(MONTH FROM joining_date) BETWEEN 1 AND 7
+AND EXTRACT(YEAR FROM joining_date) = 2022;
+
+--ex09
+select 
+POSITION('a' IN first_name)
+from worker
+WHERE first_name = 'Amitah';
+
+--ex10
+SELECT 
+SUBSTRING(title, length(winery)+2, 4) AS year_of_wine
+FROM winemag_p2
+WHERE country = 'Macedonia';
+
