@@ -78,3 +78,61 @@ ON a.page_id = b.page_id
 WHERE liked_date IS NULL
 ORDER BY a.page_id;
 
+--question01
+SELECT DISTINCT replacement_cost 
+FROM film
+ORDER BY replacement_cost;
+
+--question02
+SELECT 
+COUNT(film_id),
+CASE 
+ WHEN replacement_cost BETWEEN 9.99 AND 19.99 THEN 'low'
+ WHEN replacement_cost BETWEEN 20.00 AND 24.99 THEN 'medium'
+ WHEN replacement_cost BETWEEN 25.00 AND 29.99 THEn 'high'
+ ELSE NULL
+END replacement_group
+FROM film
+GROUP BY replacement_group;
+
+--question03
+SELECT 
+a.title,
+a.length,
+c.name AS category_name
+FROM film AS a
+LEFT JOIN film_category AS b
+ON a.film_id = b.film_id
+LEFT JOIN category AS c
+ON b.category_id = c.category_id
+WHERE c.name IN ('Drama','Sports')
+ORDER BY a.length DESC;
+
+--question04
+SELECT 
+c.name,
+COUNT(a.title)
+FROM film AS a
+LEFT JOIN film_category AS b
+ON a.film_id = b.film_id
+LEFT JOIN category AS c
+ON b.category_id = c.category_id
+GROUP BY c.name
+ORDER BY COUNT(a.title) DESC;
+
+--question05
+SELECT 
+a.actor_id,
+a.first_name,
+a.last_name,
+COUNT(b.film_id)
+FROM actor AS a
+JOIN film_actor AS b
+ON a.actor_id = b.actor_id
+GROUP BY a.actor_id 
+ORDER BY COUNT(b.film_id) DESC
+LIMIT 1;
+
+--question06
+
+
