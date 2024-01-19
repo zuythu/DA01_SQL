@@ -59,3 +59,22 @@ GROUP BY a.name, a.employee_id
 HAVING COUNT(b.employee_id) >=1
 ORDER BY a.employee_id;
 
+--ex06
+SELECT 
+DISTINCT p.product_name, 
+SUM(o.unit) AS unit
+FROM Products AS p
+LEFT JOIN Orders AS o
+ON p.product_id = o.product_id
+WHERE o.order_date BETWEEN '2020-02-01' AND '2020-02-29'
+GROUP BY p.product_name
+HAVING unit >=100;
+
+--ex07
+SELECT a.page_id
+FROM pages AS a  
+LEFT JOIN page_likes AS b 
+ON a.page_id = b.page_id
+WHERE liked_date IS NULL
+ORDER BY a.page_id;
+
