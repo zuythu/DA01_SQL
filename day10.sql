@@ -64,7 +64,7 @@ SELECT
 DISTINCT p.product_name, 
 SUM(o.unit) AS unit
 FROM Products AS p
-LEFT JOIN Orders AS o
+JOIN Orders AS o
 ON p.product_id = o.product_id
 WHERE o.order_date BETWEEN '2020-02-01' AND '2020-02-29'
 GROUP BY p.product_name
@@ -73,7 +73,7 @@ HAVING unit >=100;
 --ex07
 SELECT a.page_id
 FROM pages AS a  
-LEFT JOIN page_likes AS b 
+JOIN page_likes AS b 
 ON a.page_id = b.page_id
 WHERE liked_date IS NULL
 ORDER BY a.page_id;
@@ -134,5 +134,42 @@ ORDER BY COUNT(b.film_id) DESC
 LIMIT 1;
 
 --question06
+SELECT 
+COUNT(*)
+FROM address AS a
+LEFT JOIN customer AS c
+ON a.address_id = c.address_id
+WHERE customer_id IS NULL;
 
+--question07
+SELECT 
+a.city,
+sum(e.amount) AS avg_amount
+FROM city AS a
+JOIN country AS b
+ON a.country_id = b.country_id
+JOIN address AS c
+ON a.city_id = c.city_id
+JOIN customer AS d
+ON d.address_id = c.address_id
+JOIN payment AS e
+ON e.customer_id = d.customer_id
+GROUP BY a.city
+ORDER BY sum(e.amount) DESC;
+
+--question 08
+SELECT 
+a.city ||', '|| b.country AS city_country,
+sum(e.amount) AS avg_amount
+FROM city AS a
+JOIN country AS b
+ON a.country_id = b.country_id
+JOIN address AS c
+ON a.city_id = c.city_id
+JOIN customer AS d
+ON d.address_id = c.address_id
+JOIN payment AS e
+ON e.customer_id = d.customer_id
+GROUP BY b.country, a.city
+ORDER BY sum(e.amount) DESC;
 
