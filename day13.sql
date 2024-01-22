@@ -68,3 +68,38 @@ FROM user_of_month_6
 JOIN user_of_month_7
 ON user_of_month_7.user_id = user_of_month_6.user_id
 GROUP BY user_of_month_7.month;
+
+--ex06
+SELECT
+date_format(trans_date, '%Y-%m') AS month,
+country,
+COUNT(*) AS trans_count,
+SUM(CASE
+WHEN state = 'approved' THEN 1
+ELSE 0
+END) AS approved_count,
+SUM(amount) AS trans_total_amount,
+SUM(CASE
+WHEN state = 'approved' THEN amount
+ELSE 0
+END) AS approved_total_amount
+FROM Transactions
+GROUP BY month, country;
+
+--ex07
+WITH cte AS
+(SELECT product_id, min(year) AS first_year
+FROM Sales
+GROUP BY product_id)
+SELECT 
+s.product_id,
+cte.first_year,
+s.quantity,
+s.price
+FROM Sales AS s
+JOIN Product AS p
+ON s.product_id = p.product_id
+JOIN cte
+ON s.product_id = cte.product_id
+AND s.year = cte.first_year;
+
