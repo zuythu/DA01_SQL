@@ -26,10 +26,6 @@ WHERE ranking <= 2
 ORDER BY category, total_spend DESC;
 
 --ex03
-/*Write a query to find how many UHG members made 3 or more calls.
-case_id column uniquely identifies each call made.*/
-
-
 WITH cte AS
 (SELECT policy_holder_id,
 COUNT(*)
