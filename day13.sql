@@ -99,3 +99,74 @@ JOIN cte
 ON s.product_id = cte.product_id
 AND s.year = cte.first_year;
 
+--ex08
+SELECT customer_id
+FROM Customer
+GROUP BY customer_id
+HAVING COUNT(DISTINCT Customer.product_key) = (SELECT COUNT(product_key) FROM Product);
+
+--ex09
+SELECT e.employee_id
+FROM Employees e
+LEFT JOIN Employees m
+ON e.manager_id = m.employee_id
+WHERE e.salary < 30000 
+AND m.employee_id IS NULL 
+AND e.manager_id IS NOT NULL
+ORDER BY employee_id;
+
+--ex10
+WITH table_1 AS 
+(SELECT 
+company_id,
+title,
+description,
+COUNT(job_id) 
+FROM job_listings 
+GROUP BY title, description, company_id
+HAVING count(job_id) >= 2)
+SELECT COUNT(company_id) AS duplicate_companies
+FROM table_1;
+
+--ex11
+WITH cte AS
+(SELECT b.user_id,
+b.name AS name,
+COUNT(movie_id) AS rated_count
+FROM Users AS b
+JOIN MovieRating AS c
+ON b.user_id = c.user_id
+GROUP BY b.user_id, b.name),
+cte2 AS (SELECT
+a.title AS movie,
+AVG(c.rating)
+FROM Movies AS a
+JOIN MovieRating AS c
+ON a.movie_id = c.movie_id
+WHERE c.created_at BETWEEN '2020-02-01' AND '2020-02-29'
+GROUP BY a.title
+ORDER BY AVG(c.rating) DESC, a.title
+LIMIT 1)
+
+(SELECT name  AS results FROM cte
+WHERE rated_count = (SELECT MAX(rated_count) FROM cte )
+ORDER BY name 
+LIMIT 1)
+
+UNION
+
+(SELECT movie  AS results FROM cte2)
+
+--ex12
+SELECT
+id,
+COUNT(id) AS num
+FROM (SELECT requester_id AS id
+FROM RequestAccepted
+UNION ALL 
+SELECT accepter_id AS id
+FROM RequestAccepted) AS all_users
+GROUP BY id
+ORDER BY COUNT(id) DESC
+LIMIT 1
+
