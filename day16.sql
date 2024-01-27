@@ -6,13 +6,12 @@ FROM Delivery)
 SELECT 
 ROUND((SELECT COUNT(delivery_id)FROM ranking_order WHERE ranking = 1 AND order_date = customer_pref_delivery_date) / (SELECT COUNT(delivery_id) FROM ranking_order WHERE ranking = 1) * 100,2) AS immediate_percentage;
 
---ex
-WITH overview AS
-(SELECT player_id, device_id, event_date,
-LAG(event_date) OVER(PARTITION BY player_id ORDER BY event_date) AS previous_date,
-event_date - LAG(event_date) OVER(PARTITION BY player_id ORDER BY event_date) AS day_diff
-FROM Activity)
-SELECT ROUND((SELECT COUNT(DISTINCT player_id) FROM overview WHERE day_diff >=2) / (SELECT COUNT(DISTINCT player_id) FROM overview) ,2) AS fraction...
+--ex02
+SELECT 
+ROUND(COUNT(DISTINCT player_id) / (SELECT COUNT(DISTINCT player_id) FROM Activity), 2) as fraction
+FROM Activity
+WHERE 
+(player_id, DATE_SUB(event_date, INTERVAL 1 DAY)) IN ( SELECT player_id, MIN(event_date) AS first_login FROM Activity GROUP BY player_id);
 
 --ex03
 SELECT 
@@ -60,6 +59,36 @@ FROM c
 JOIN Department AS b
 ON c.departmentId = b.id
 WHERE c.ranking <= 3;
+
+--ex07
+SELECT person_name
+FROM 
+(SELECT person_name, weight, turn,
+SUM(weight) Over(ORDER BY turn) AS total_weight 
+FROM Queue) AS total_weight
+WHERE total_weight <= 1000
+ORDER BY turn DESC
+LIMIT 1;
+
+--ex08
+WITH b AS
+(SELECT product_id, max(change_date) AS date
+FROM Products
+WHERE change_date <='2019-08-16' 
+GROUP BY product_id)
+
+SELECT a.product_id, a.new_price AS price
+FROM products AS a
+JOIN b
+ON a.product_id = b.product_id
+AND a.change_date = b.date
+
+UNION 
+
+SELECT DISTINCT product_id, 10 AS price
+FROM Products
+WHERE NOT product_id IN (select distinct product_id from Products where change_date <='2019-08-16');
+
 
 
 
