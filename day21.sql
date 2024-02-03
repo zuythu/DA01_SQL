@@ -48,3 +48,20 @@ FROM cte2
 GROUP BY tag;
 
 --ex04
+SELECT
+  FORMAT_TIMESTAMP('%Y-%m', b.created_at) AS year_month,
+  SUM(a.retail_price - a.cost) AS total_profit,
+  a.id,
+  a.name,
+  DENSE_RANK() OVER (PARTITION BY EXTRACT(MONTH FROM b.created_at) ORDER BY SUM(a.retail_price - a.cost)) as ranking 
+FROM
+  bigquery-public-data.thelook_ecommerce.products AS a
+INNER JOIN
+  bigquery-public-data.thelook_ecommerce.order_items AS b
+ON
+  a.id = b.id
+GROUP BY
+  year_month, a.id, a.name
+HAVING ranking <= 5
+ORDER BY
+  year_month;
