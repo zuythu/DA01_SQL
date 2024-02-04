@@ -12,7 +12,7 @@ from bigquery-public-data.thelook_ecommerce.order_items
 group by year, month
 order by year, month)
 limit 40
---> tổng đơn hàng và khách hàng theo từng tháng tăng từ 1/2019 đến 4/2022
+
 --ex02
 SELECT 
 FORMAT_TIMESTAMP('%Y-%m', created_at) AS year_month,
@@ -65,3 +65,18 @@ GROUP BY
 HAVING ranking <= 5
 ORDER BY
   year_month;
+
+--ex05
+SELECT
+  p.category,
+  SUM(oi.quantity * p.price) AS total_revenue
+FROM
+  bigquery-public-data.thelook_ecommerce.orders AS o
+JOIN
+  bigquery-public-data.thelook_ecommerce.order_items AS oi ON o.order_id = oi.order_id
+JOIN
+  bigquery-public-data.thelook_ecommerce.products AS p ON oi.id = p.id
+WHERE
+   o.created_at <= TIMESTAMP(CURRENT_TIMESTAMP(), INTERVAL 3 MONTH)
+GROUP BY
+  p.category;
