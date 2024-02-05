@@ -4,8 +4,8 @@ total_user,
 total_order
 from (
 select
-sum(distinct user_id) as total_user,
-sum(distinct order_id) as total_order,
+count(distinct user_id) as total_user,
+count(distinct order_id) as total_order,
 extract(month from created_at) as month,
 extract(year from created_at) as year
 from bigquery-public-data.thelook_ecommerce.order_items
@@ -24,28 +24,26 @@ group by year_month
 order by year_month
 
 --ex03
-with cte as (select last_name,first_name, age, gender,
-FORMAT_TIMESTAMP('%Y-%m', created_at) AS year_month
-from bigquery-public-data.thelook_ecommerce.users
-where FORMAT_TIMESTAMP('%Y-%m', created_at) between '2019-01' and '2022-04'),
-cte2 as (
-SELECT
-  last_name,
-  first_name,
-  age,
-  gender,
-  CASE
-    WHEN age = (SELECT MAX(age) FROM cte WHERE gender = 'M') THEN 'oldest'
-    WHEN age = (SELECT MAX(age) FROM cte WHERE gender = 'F') THEN 'oldest'
-    WHEN age = (SELECT MIN(age) FROM cte WHERE gender = 'M') THEN 'youngest'
-    WHEN age = (SELECT MIN(age) FROM cte WHERE gender = 'F') THEN 'youngest'
-  END AS tag
+SELECT first_name, last_name, gender, age, tag
 FROM
-  cte)
+(SELECT first_name, last_name, gender, age,
+DENSE_RANK () OVER(PARTITION BY gender ORDER BY age ) AS ranking,
+'youngest' AS tag,
+FROM bigquery-public-data.thelook_ecommerce.users
+WHERE FORMAT_TIMESTAMP('%Y-%m', created_at) BETWEEN '2019-01' AND '2022-04')
+WHERE ranking = 1
 
-SELECT tag, COUNT(*) as number 
-FROM cte2
-GROUP BY tag;
+UNION ALL
+
+SELECT first_name, last_name, gender, age, tag
+FROM
+(SELECT first_name, last_name, gender, age,
+DENSE_RANK () OVER(PARTITION BY gender ORDER BY age DESC ) AS ranking,
+'oldest' AS tag,
+FROM bigquery-public-data.thelook_ecommerce.users
+WHERE FORMAT_TIMESTAMP('%Y-%m', created_at) BETWEEN '2019-01' AND '2022-04')
+WHERE ranking = 1
+
 
 --ex04
 SELECT
