@@ -76,19 +76,38 @@ WHERE DATE(b.created_at) BETWEEN '2022-01-15' AND '2022-04-15'
 GROUP BY dates, product_categories  
 ORDER BY dates ,product_categories;
 ---------------------------------------------------PART2-------------------------------------------------------------------
+
+
 WITH cte1 AS 
 (SELECT 
 FORMAT_TIMESTAMP('%Y-%m', b.created_at) AS month,
 EXTRACT(YEAR FROM b.created_at) AS year,
 c.category AS product_category,
-SUM(a.sale_price) OVER(PARTITION BY FORMAT_TIMESTAMP('%Y-%m', b.created_at), EXTRACT(YEAR FROM b.created_at)),
-SUM(c.cost) OVER(PARTITION BY FORMAT_TIMESTAMP('%Y-%m', b.created_at), EXTRACT(YEAR FROM b.created_at)),
+SUM(a.sale_price) OVER(PARTITION BY FORMAT_TIMESTAMP('%Y-%m', b.created_at)) AS TPV ,
+SUM(c.cost) OVER(PARTITION BY FORMAT_TIMESTAMP('%Y-%m', b.created_at)) AS total_cost,
 ROUND(SUM(a.sale_price) OVER(PARTITION BY FORMAT_TIMESTAMP('%Y-%m', b.created_at), EXTRACT(YEAR FROM b.created_at)) -
-SUM(c.cost) OVER(PARTITION BY FORMAT_TIMESTAMP('%Y-%m', b.created_at), EXTRACT(YEAR FROM b.created_at)),2) AS TPV,
-COUNT(a.id) OVER(PARTITION BY FORMAT_TIMESTAMP('%Y-%m', b.created_at), EXTRACT(YEAR FROM b.created_at)) AS TPO
+SUM(c.cost) OVER(PARTITION BY FORMAT_TIMESTAMP('%Y-%m', b.created_at)),2) AS total_profit,
+COUNT(a.id) OVER(PARTITION BY FORMAT_TIMESTAMP('%Y-%m', b.created_at)) AS TPO
 
 FROM bigquery-public-data.thelook_ecommerce.order_items AS a 
 JOIN bigquery-public-data.thelook_ecommerce.orders AS b
 ON a.order_id = b.order_id
 JOIN bigquery-public-data.thelook_ecommerce.products AS c
-ON a.product_id = c.id)
+ON a.product_id = c.id),
+
+cte2 AS
+(SELECT *,
+LEAD(TPV) OVER (ORDER BY month) AS sale_next_month,
+ROUND((LEAD(TPV) OVER (ORDER BY month) - TPV) / TPV * 100, 2) || '%' AS revenue_growth,
+LEAD(TPO) OVER (ORDER BY month) AS order_next_month,
+ROUND((LEAD(TPO) OVER (ORDER BY month) - TPO) / TPO * 100, 2) || '%' AS order_growth,
+ROUND(total_profit/total_cost,2) AS Profit_to_cost_ratio
+FROM cte1)
+
+
+SELECT cte1.month, cte1.year, cte1.product_category, cte1.TPV, cte1.total_cost, cte1.total_profit, cte1.TPO,
+cte2.revenue_growth, cte2.order_growth
+FROM cte1 
+JOIN cte2 
+ON cte1.month = cte2.month
+
