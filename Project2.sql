@@ -75,3 +75,20 @@ ON a.id = b.product_id
 WHERE DATE(b.created_at) BETWEEN '2022-01-15' AND '2022-04-15'
 GROUP BY dates, product_categories  
 ORDER BY dates ,product_categories;
+---------------------------------------------------PART2-------------------------------------------------------------------
+WITH cte1 AS 
+(SELECT 
+FORMAT_TIMESTAMP('%Y-%m', b.created_at) AS month,
+EXTRACT(YEAR FROM b.created_at) AS year,
+c.category AS product_category,
+SUM(a.sale_price) OVER(PARTITION BY FORMAT_TIMESTAMP('%Y-%m', b.created_at), EXTRACT(YEAR FROM b.created_at)),
+SUM(c.cost) OVER(PARTITION BY FORMAT_TIMESTAMP('%Y-%m', b.created_at), EXTRACT(YEAR FROM b.created_at)),
+ROUND(SUM(a.sale_price) OVER(PARTITION BY FORMAT_TIMESTAMP('%Y-%m', b.created_at), EXTRACT(YEAR FROM b.created_at)) -
+SUM(c.cost) OVER(PARTITION BY FORMAT_TIMESTAMP('%Y-%m', b.created_at), EXTRACT(YEAR FROM b.created_at)),2) AS TPV,
+COUNT(a.id) OVER(PARTITION BY FORMAT_TIMESTAMP('%Y-%m', b.created_at), EXTRACT(YEAR FROM b.created_at)) AS TPO
+
+FROM bigquery-public-data.thelook_ecommerce.order_items AS a 
+JOIN bigquery-public-data.thelook_ecommerce.orders AS b
+ON a.order_id = b.order_id
+JOIN bigquery-public-data.thelook_ecommerce.products AS c
+ON a.product_id = c.id)
