@@ -42,27 +42,27 @@ DENSE_RANK () OVER(PARTITION BY gender ORDER BY age DESC ) AS ranking,
 'oldest' AS tag,
 FROM bigquery-public-data.thelook_ecommerce.users
 WHERE FORMAT_TIMESTAMP('%Y-%m', created_at) BETWEEN '2019-01' AND '2022-04')
-WHERE ranking = 1
+WHERE ranking = 1;
 
 
 --ex04
-SELECT
-  FORMAT_TIMESTAMP('%Y-%m', b.created_at) AS year_month,
-  SUM(a.retail_price - a.cost) AS total_profit,
-  a.id,
-  a.name,
-  DENSE_RANK() OVER (PARTITION BY EXTRACT(MONTH FROM b.created_at) ORDER BY SUM(a.retail_price - a.cost)) as ranking 
+SELECT 
+year_month, product_id, product_name, sales, cost, profit, rank_per_month
 FROM
-  bigquery-public-data.thelook_ecommerce.products AS a
-INNER JOIN
-  bigquery-public-data.thelook_ecommerce.order_items AS b
-ON
-  a.id = b.id
-GROUP BY
-  year_month, a.id, a.name
-HAVING ranking <= 5
-ORDER BY
-  year_month;
+(SELECT 
+FORMAT_TIMESTAMP('%Y-%m', b.created_at) AS year_month,
+b.product_id AS product_id,
+a.name AS product_name,
+a.retail_price AS sales,
+a.cost,
+(a.retail_price - a.cost) AS profit,
+DENSE_RANK()OVER(PARTITION BY FORMAT_TIMESTAMP('%Y-%m', b.created_at) ORDER BY (a.retail_price - a.cost) DESC ) AS rank_per_month
+FROM bigquery-public-data.thelook_ecommerce.products AS a
+JOIN bigquery-public-data.thelook_ecommerce.order_items AS b
+ON a.id = b.product_id) 
+WHERE rank_per_month <= 5
+ORDER BY year_month, rank_per_month;
+
 
 --ex05
 SELECT
