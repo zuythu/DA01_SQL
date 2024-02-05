@@ -1,5 +1,5 @@
 --ex01
-select year||'-'||month as year_month,
+FORMAT_TIMESTAMP('%Y-%m', created_at) AS year_month,
 total_user,
 total_order
 from (
@@ -65,16 +65,13 @@ ORDER BY year_month, rank_per_month;
 
 
 --ex05
-SELECT
-  p.category,
-  SUM(oi.quantity * p.price) AS total_revenue
-FROM
-  bigquery-public-data.thelook_ecommerce.orders AS o
-JOIN
-  bigquery-public-data.thelook_ecommerce.order_items AS oi ON o.order_id = oi.order_id
-JOIN
-  bigquery-public-data.thelook_ecommerce.products AS p ON oi.id = p.id
-WHERE
-   o.created_at <= TIMESTAMP(CURRENT_TIMESTAMP(), INTERVAL 3 MONTH)
-GROUP BY
-  p.category;
+SELECT 
+DATE(b.created_at) AS dates,
+a.category AS product_categories,
+SUM(a.retail_price) AS revenue,
+FROM bigquery-public-data.thelook_ecommerce.products AS a
+JOIN bigquery-public-data.thelook_ecommerce.order_items AS b
+ON a.id = b.product_id
+WHERE DATE(b.created_at) BETWEEN '2022-01-15' AND '2022-04-15'
+GROUP BY dates, product_categories  
+ORDER BY dates ,product_categories;
