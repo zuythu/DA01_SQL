@@ -111,3 +111,32 @@ FROM cte1
 JOIN cte2 
 ON cte1.month = cte2.month
 
+---------------
+WITH index_table AS
+(SELECT user_id, amount,
+FORMAT_TIMESTAMP('%Y-%m', first_purchase_date) AS cohort_date,
+(EXTRACT(YEAR FROM dates ) - EXTRACT(YEAR FROM first_purchase_date )) * 12 +
+(EXTRACT(MONTH FROM dates) - EXTRACT(MONTH FROM first_purchase_date)) + 1 AS index
+FROM (SELECT  
+user_id,
+sale_price AS amount,
+DATE(created_at) AS dates,
+MIN(DATE(created_at)) OVER(PARTITION BY user_id) AS first_purchase_date
+FROM bigquery-public-data.thelook_ecommerce.order_items)),
+
+final AS (SELECT 
+cohort_date,
+index,
+COUNT(DISTINCT user_id) AS cnt,
+ROUND(SUM(amount),2) AS revenue
+FROM index_table
+GROUP BY cohort_date, index)
+
+
+SELECT 
+cohort_date,
+SUM(CASE WHEN index = 1 THEN cnt ELSE 0 END) AS `1`,
+
+FROM final 
+GROUP BY cohort_date
+
