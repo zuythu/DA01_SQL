@@ -1,4 +1,6 @@
---ex01
+--Ecommerce Dataset: Exploratory Data Analysis (EDA) and Cohort Analysis in SQL--
+
+--1. Số lượng đơn hàng và số lượng khách hàng mỗi tháng
 FORMAT_TIMESTAMP('%Y-%m', created_at) AS year_month,
 total_user,
 total_order
@@ -13,7 +15,7 @@ group by year, month
 order by year, month)
 limit 40
 
---ex02
+--2. Giá trị đơn hàng trung bình (AOV) và số lượng khách hàng mỗi tháng
 SELECT 
 FORMAT_TIMESTAMP('%Y-%m', created_at) AS year_month,
 count(distinct user_id) as distinct_users,
@@ -23,7 +25,7 @@ where FORMAT_TIMESTAMP('%Y-%m', created_at) between '2019-01' and '2022-04'
 group by year_month
 order by year_month
 
---ex03
+--3. Nhóm khách hàng theo độ tuổi
 SELECT first_name, last_name, gender, age, tag
 FROM
 (SELECT first_name, last_name, gender, age,
@@ -45,7 +47,7 @@ WHERE FORMAT_TIMESTAMP('%Y-%m', created_at) BETWEEN '2019-01' AND '2022-04')
 WHERE ranking = 1;
 
 
---ex04
+--4.Top 5 sản phẩm mỗi tháng.
 SELECT 
 year_month, product_id, product_name, sales, cost, profit, rank_per_month
 FROM
@@ -64,7 +66,7 @@ WHERE rank_per_month <= 5
 ORDER BY year_month, rank_per_month;
 
 
---ex05
+--5.Doanh thu tính đến thời điểm hiện tại trên mỗi danh mục
 SELECT 
 DATE(b.created_at) AS dates,
 a.category AS product_categories,
@@ -77,8 +79,9 @@ GROUP BY dates, product_categories
 ORDER BY dates ,product_categories;
 ---------------------------------------------------PART2-------------------------------------------------------------------
 
-
-WITH cte1 AS 
+--Yêu cầu dataset
+CREATE VIEW vw_ecommerce_analyst AS
+(WITH cte1 AS 
 (SELECT 
 FORMAT_TIMESTAMP('%Y-%m', b.created_at) AS month,
 EXTRACT(YEAR FROM b.created_at) AS year,
@@ -109,9 +112,9 @@ SELECT cte1.month, cte1.year, cte1.product_category, cte1.TPV, cte1.total_cost, 
 cte2.revenue_growth, cte2.order_growth
 FROM cte1 
 JOIN cte2 
-ON cte1.month = cte2.month
+ON cte1.month = cte2.month)
 
----------------
+--Retention cohort analysis
 WITH index_table AS
 (SELECT user_id, amount,
 FORMAT_TIMESTAMP('%Y-%m', first_purchase_date) AS cohort_date,
@@ -140,7 +143,9 @@ SUM(CASE WHEN index = 1 THEN cnt ELSE 0 END) AS `1`,
 FROM final 
 GROUP BY cohort_date
 
---TAO BAN COOT
+--Tạo cohort table 
+LINK:
+  
 WITH index_table AS
 (SELECT user_id, amount,
 FORMAT_TIMESTAMP('%Y-%m', first_purchase_date) AS cohort_date,
